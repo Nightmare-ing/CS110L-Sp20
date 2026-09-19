@@ -14,6 +14,7 @@
 // more in depth in the coming lectures.
 extern crate rand;
 use rand::Rng;
+use std::char;
 use std::fs;
 use std::io;
 use std::io::Write;
@@ -34,7 +35,62 @@ fn main() {
     // secret_word by doing secret_word_chars[i].
     let secret_word_chars: Vec<char> = secret_word.chars().collect();
     // Uncomment for debugging:
-    // println!("random word: {}", secret_word);
+    println!("random word: {}", secret_word);
 
-    // Your code here! :)
+    println!("Welcome to CS110L Hangman!");
+    let mut guess_left: u32 = NUM_INCORRECT_GUESSES;
+    let mut guess_word = "-"
+        .repeat(secret_word_chars.len())
+        .chars()
+        .collect::<Vec<char>>();
+    let mut guess_chars: Vec<char> = Vec::new();
+    let win = loop {
+        println!(
+            "The word so far is {}",
+            guess_word.iter().collect::<String>()
+        );
+        println!(
+            "You have guessed the following letters: {}",
+            guess_chars.iter().collect::<String>()
+        );
+        println!("You have {} guesses left", guess_left);
+
+        print!("Please guess a letter: ");
+        io::stdout().flush().expect("Error flushing stdout.");
+        let mut guess = String::new();
+        io::stdin()
+            .read_line(&mut guess)
+            .expect("Error reading line.");
+
+        if let Some(letter) = guess.chars().next() {
+            let mut found = false;
+            for idx in 0..secret_word_chars.len() {
+                if secret_word_chars[idx] == letter && guess_word[idx] == '-' {
+                    guess_word[idx] = letter;
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                guess_left -= 1;
+                println!("Sorry, that letter is not in the word");
+            }
+            guess_chars.push(letter);
+            println!();
+        }
+        if guess_left == 0 {
+            break false;
+        }
+        if !guess_word.contains(&'-') {
+            break true;
+        }
+    };
+    if win {
+        println!(
+            "Congratulations you guessed the secret word: {}!",
+            secret_word
+        );
+    } else {
+        println!("Sorry, you ran out of guesses!");
+    }
 }
