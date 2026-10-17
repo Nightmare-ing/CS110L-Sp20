@@ -2,6 +2,7 @@ use grid::Grid;
 use std::cmp;
 // For lcs()
 use std::env;
+use std::fmt::format;
 use std::fs::File; // For read_file_lines()
 use std::io::{self, BufRead}; // For read_file_lines()
 use std::process;
@@ -47,22 +48,55 @@ fn lcs(seq1: &Vec<String>, seq2: &Vec<String>) -> Grid {
     grid
 }
 
-fn print_diff(lcs_table: &Grid, lines1: &Vec<String>, lines2: &Vec<String>, i: usize, j: usize) {
+fn print_diff_recur(
+    lcs_table: &Grid,
+    lines1: &Vec<String>,
+    lines2: &Vec<String>,
+    i: usize,
+    j: usize,
+) {
     if i > 0 && j > 0 && lines1[i - 1] == lines2[j - 1] {
-        print_diff(lcs_table, lines1, lines2, i - 1, j - 1);
+        print_diff_recur(lcs_table, lines1, lines2, i - 1, j - 1);
         println!("  {}", lines1[i - 1]);
     } else if j > 0
         && (i == 0 || lcs_table.get(i, j - 1).unwrap() >= lcs_table.get(i - 1, j).unwrap())
     {
-        print_diff(lcs_table, lines1, lines2, i, j - 1);
+        print_diff_recur(lcs_table, lines1, lines2, i, j - 1);
         println!("> {}", lines2[j - 1]);
     } else if i > 0
         && (j == 0 || lcs_table.get(i, j - 1).unwrap() < lcs_table.get(i - 1, j).unwrap())
     {
-        print_diff(lcs_table, lines1, lines2, i - 1, j);
+        print_diff_recur(lcs_table, lines1, lines2, i - 1, j);
         println!("< {}", lines1[i - 1]);
     } else {
         println!();
+    }
+}
+
+fn print_diff(lcs_table: &Grid, lines1: &Vec<String>, lines2: &Vec<String>) {
+    let mut i: usize = lines1.len();
+    let mut j: usize = lines2.len();
+
+    let mut output: Vec<String> = Vec::new();
+    while i > 0 || j > 0 {
+        if i > 0 && j > 0 && lines1[i - 1] == lines2[j - 1] {
+            output.push(format!("  {}", lines1[i - 1]));
+            i -= 1;
+            j -= 1;
+        } else if j > 0
+            && (i == 0 || lcs_table.get(i, j - 1).unwrap() >= lcs_table.get(i - 1, j).unwrap())
+        {
+            output.push(format!("> {}", lines2[j - 1]));
+            j -= 1;
+        } else if i > 0
+            && (j == 0 || lcs_table.get(i, j - 1).unwrap() < lcs_table.get(i - 1, j).unwrap())
+        {
+            output.push(format!("< {}", lines1[i - 1]));
+            i -= 1;
+        }
+    }
+    for str in output.iter().rev() {
+        println!("{}", str);
     }
 }
 
@@ -78,7 +112,7 @@ fn main() {
     let seq1 = read_file_lines(filename1).expect("File path for the first file is invalid!");
     let seq2 = read_file_lines(filename2).expect("File path for the second file is invalid");
     let lcs_grid = lcs(&seq1, &seq2);
-    print_diff(&lcs_grid, &seq1, &seq2, seq1.len(), seq2.len());
+    print_diff(&lcs_grid, &seq1, &seq2);
 }
 
 #[cfg(test)]
