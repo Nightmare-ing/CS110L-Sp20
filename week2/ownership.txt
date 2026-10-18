@@ -10,7 +10,20 @@ fn main() {
 }
 ```
 
+Can't compile, because `s` is declared as mutable, but we have immutable reference to it with `ref1`.
+Lifetime of `s` and lifetime of `ref1, ref2, ref3` should not overlap.
+We can change code to
 
+```rust
+fn main() {
+    let mut s = String::from("hello");
+    s = String::from("goodbye");
+    let ref1 = &s;
+    let ref2 = &ref1;
+    let ref3 = &ref2;
+    println!("{}", ref3.to_uppercase());
+}
+````
 
 Example 2:
 ```
@@ -20,7 +33,17 @@ fn drip_drop() -> &String {
 }
 ```
 
+Can't compile, because the lifetime of `s` is during the scope of `drip_drop`, we can't return a reference from this function.
+The code can be modified to
 
+```rust
+fn drip_drop() -> String {
+    let s = String::from("hello world!");
+    return s;
+}
+```
+
+Thus just transfer ownership back to caller.
 
 Example 3:
 ```
@@ -32,3 +55,5 @@ fn main() {
     println!("{}", s2);
 }
 ```
+
+Can't compile. At `let s2: String = v[0]`, we're trying to transfer ownership of `v[0]` to `s2`. However it seems that we can't transfer ownership out of index of `Vec<String>`
