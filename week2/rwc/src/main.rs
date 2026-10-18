@@ -1,4 +1,5 @@
 use std::env;
+use std::fs;
 use std::process;
 
 fn main() {
@@ -8,5 +9,9 @@ fn main() {
         process::exit(1);
     }
     let filename = &args[1];
-    // Your code here :)
+    let buf = fs::read_to_string(filename).expect("Failed to open file!");
+    let num_chars = buf.len();
+    let num_lns = buf.split("\n").count() - 1;
+    let num_words = buf.split_whitespace().count();
+    println!("{} {} {}", num_lns, num_words, num_chars);
 }
